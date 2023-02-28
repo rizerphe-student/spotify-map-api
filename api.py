@@ -1,6 +1,5 @@
 """A minimal API for retrieving the map for a given artist."""
 import os
-import threading
 
 import dotenv
 import flask
@@ -68,8 +67,7 @@ def artist_map(artist: str) -> str:
         str: The HTML code for the map, or an loading page.
     """
     if artist not in maps:
-        threading.Thread(target=add_map, args=[artist]).start()
-        return "<meta http-equiv='refresh' content='2'><h1>Generating map...</h1>"
+        add_map(artist)
     return maps[artist] or "<h1>No artist found</h1>"
 
 
