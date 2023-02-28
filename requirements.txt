@@ -1,3 +1,4 @@
 flask
 folium
 python-dotenv
+git+https://github.com/rizerphe-student/spotify-minimal-client.git
