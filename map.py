@@ -1,6 +1,7 @@
 """A module that generates the map for the spotify artist based searcher."""
-import concurrent.futures
+import contextlib
 import json
+from multiprocessing import Pool
 from typing import Callable
 
 import folium
@@ -20,14 +21,15 @@ def get_location(code: str) -> tuple[float, float]:
         return json.load(file)[code]
 
 
-def add_marker(folium_map, code, get_label):
-    label = get_label(code)
+def get_marker(code, get_label):
+    with contextlib.suppress(KeyError):
+        label = get_label(code)
     if label is None:
-        return
+        return None
     country_info = folium.Html(f"<b>{label}</b>", script=True)
     popup = folium.Popup(country_info, max_width=200, show=True)
     marker = folium.Marker(location=get_location(code), popup=popup)
-    marker.add_to(folium_map)
+    return marker
 
 
 def generate_map(
@@ -49,10 +51,12 @@ def generate_map(
     map_center = [0, 0]
     folium_map = folium.Map(location=map_center, zoom_start=2)
 
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = []
-        for code in codes:
-            futures.append(executor.submit(add_marker, folium_map, code, get_label))
+    with Pool() as pool:
+        markers = pool.starmap(get_marker, [(code, get_label) for code in codes])
+
+    for marker in markers:
+        if marker is not None:
+            marker.add_to(folium_map)
 
     return folium_map.get_root().render()
 

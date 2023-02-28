@@ -68,7 +68,7 @@ def artist_map(artist: str) -> str:
     """
     if artist not in maps:
         add_map(artist)
-    return maps[artist] or "<h1>No artist found</h1>"
+    return maps.get(artist) or "<h1>No artist found</h1>"
 
 
 if __name__ == "__main__":
